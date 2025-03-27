@@ -35,7 +35,7 @@ jobs:
             ${{ runner.os }}-R-
       - name: Install R Packages
         run: |
-          if (!requireNamespace("kofdata", quietly = TRUE)) install.packages("kofdata")
+          if (!requireNamespace("kofdata", quietly = TRUE)){install.packages("kofdata")}
       - name: Run Rscript
         run: |
           Rscript R/import_data.R
