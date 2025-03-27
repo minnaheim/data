@@ -16,43 +16,26 @@ permissions:
 jobs:
   update_repo:
     name: update_repo
-    runs-on: ubuntu-22.04
-    container: rocker/verse:latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Setup R
+      - name: Setup R # this takes 38 seconds
         uses: r-lib/actions/setup-r@v2
-        with:
-          use-public-rspm: true
-      - name: Install dependencies
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          packages: kofdata
-      - name: Cache R packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.R
-          key: ${{ runner.os }}-r-${{ hashFiles('**/DESCRIPTION') }}
-          restore-keys: |
-            ${{ runner.os }}-r-
-
-      - name: Install R Packages
+      - name: Install system dependencies
+        run: r-lib/actions/setup-r-dependencies@v2 # sets up all pkg dep. from the DESCRIPTION file
+      - name: Install R Packages # this takes 35 seconds
         run: |
-          R -e 'if (!requireNamespace("kofdata", quietly = TRUE)) install.packages("kofdata")'
+          R -e 'install.packages("kofdata")'
       - name: Run Rscript
         run: |
           Rscript R/import_data.R
       - name: Commit and push changes
         run: |
-          git config --global --add safe.directory /__w/data/data
           git config --global user.name "${{ secrets.GH_ACTOR }}"
           git config --global user.email "${{ secrets.GH_ACTOR }}@users.noreply.github.com"
           git add -A
-          if ! git diff --staged --quiet; then
-            git commit -m "Automated Update of Datasets in Repo"
-            git push
-          fi
-
+          git commit -m "Automated Update of Datasets in Repo"
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
